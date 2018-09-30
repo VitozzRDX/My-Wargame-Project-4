@@ -145,8 +145,13 @@ Game.prototype.setplayerWhooseTurn = function (thisplayershostorguest) {
 
 Counter.prototype.isClickedInNearHex = function (originHex, hexClicked) {
     console.log(" we are inside isClickedInNearHex ")
+    console.log("originHex :");
     console.log(originHex)
+    console.log("hexClicked :");
+    console.log(hexClicked);
+
     var listOfNtHexes = this.listOfNearestHexes(originHex, 1);
+    console.log("listOfNtHexes :")
     console.log(listOfNtHexes)
     for (var i in listOfNtHexes) {											// optimize ?
         if (deepEqual(listOfNtHexes[i], hexClicked)) {
@@ -159,13 +164,24 @@ Counter.prototype.isClickedInNearHex = function (originHex, hexClicked) {
 }
 
 Counter.prototype.isClickedInCoverArc = function (orientation, originHex, hexClicked) {
+    console.log(" we are inside isClickedInCoverArc ");
+    console.log("originHex :");
+    console.log(originHex)
+    console.log("hexClicked :");
+    console.log(hexClicked);
 
     var listOfNtHexes = this.creatingListOfNearestHexesInCA(orientation, originHex);
+
+    console.log("listOfNtHexes :")
+    console.log(listOfNtHexes)
+
     for (var i in listOfNtHexes) {											// optimize ?
         if (deepEqual(listOfNtHexes[i], hexClicked)) {
+            console.log("Yes we clicked in CA")
             return true;
         }
     }
+    console.log("No we clicked not in CA")
     return false
 }
 
@@ -197,29 +213,31 @@ Counter.prototype.creatingListOfNearestHexesInCA = function (sector, startingHex
     }
     return list
 };
-Game.prototype.processTurnClicks = function (data,oppusersocket) {
+Game.prototype.processTurnClicks = function (data,oppusersocket) {  // data = [this.mySel.parentCounterObj.ID,'-=60',newSector]
     console.log(data)
     this.selectedCounter = this.allCounters[data[0]];
+    this.selectedCounter.orientation = data[2];
     oppusersocket.emit("turnTo",[this.selectedCounter.ID,data])     // [newSector,'-=60']
 }; 
 
 Game.prototype.processOppsClick = function (data,oppusersocket) {          //[this.mySel.ID,this.hexClicked] processTurnClicks
     console.log(data)
-    this.selectedCounter = this.allCounters[data[0]]    // let us ind counter b ID
+    this.selectedCounter = this.allCounters[data[0]]                       // let us ind counter b ID
     console.log(this.selectedCounter);
     console.log(this.playerWhooseTurnItIs);
-    if (this.selectedCounter.owner === this.playerWhooseTurnItIs) {
-        console.log("this.selectedCounter.owner === this.playerWhooseTurnItIs")
-        console.log()
+    // if (this.selectedCounter.owner === this.playerWhooseTurnItIs) {
+    //     console.log("this.selectedCounter.owner === this.playerWhooseTurnItIs")
+    //     console.log("...")
         if (this.selectedCounter.isClickedInNearHex(this.selectedCounter.ownHex, data[1])) {
             if (this.selectedCounter.isClickedInCoverArc(this.selectedCounter.orientation, this.selectedCounter.ownHex, data[1])) {
                 console.log("es we clicked in Near Hex and isClickedInCoverArc")
                 this.selectedCounter.ownHex = data[1];
-
-                oppusersocket.emit("tt",[this.selectedCounter.ID, data[1]])
+                console.log ("we emitting clickToMove to oppuser with this data :");
+                console.log ([this.selectedCounter.ID, data[1]]);
+                oppusersocket.emit("clickToMove",[this.selectedCounter.ID, data[1]])
             }
         }
-    }
+    //}
 };
 
 module.exports = Game

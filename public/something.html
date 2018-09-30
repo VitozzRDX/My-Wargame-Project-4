@@ -28,7 +28,7 @@
 		var sector;
 		//var listOfHexObjToRemove = [];
 		// var listOfHexObjToRemove1 = [];
-		var center;
+		//var center;
 		var layout_flat = Orientation(3.0 / 2.0, 0.0, Math.sqrt(3.0) / 2.0, Math.sqrt(3.0), 2.0 / 3.0, 0.0, -1.0 / 3.0, Math.sqrt(3.0) / 3.0, 0.0);
 		var flat = Layout(layout_flat, Point(40, 40), Point(0, 0));
 		var allCounters = {}
@@ -44,7 +44,7 @@
 				this.name = name;
 
 				//this.owner = none
-				console.log([startinTop, startinLeft]);
+				//console.log([startinTop, startinLeft]);
 
 				this.orientation = orientation;
 				this.startinTop = startinTop;
@@ -56,11 +56,10 @@
 		};
 		Counter.prototype.drawImage = function () {
 			self = this;
-			console.log("drawing")
+			//console.log("drawing")
 			//console.log([self.startinTop, self.startinLeft])
 			fabric.Image.fromURL(self.src, function (img) {
-
-				console.log(' image loaded !');
+				//console.log(' image loaded !');
 				img.set({
 					left: this.startinLeft,
 					top: this.startinTop,
@@ -71,8 +70,8 @@
 				img.center = Point(img.width, img.height);
 				img.ownHex = hex_round(pixel_to_hex(flat, { x: this.startinLeft, y: this.startinTop }));
 				//img.owner = this.owner
-				console.log("img.ownHex :");
-				console.log(img.ownHex);
+				// console.log("img.ownHex :");
+				// console.log(img.ownHex);
 				img.parentCounterObj = this         // good ! now we can remove all img. and get them by img.parentCounterObj
 				this.img = img
 				//self.img = img ??
@@ -85,12 +84,12 @@
 		var username = getCookie("userName");
 
 
-		panzer1 = new Counter('assets/pziiif.gif', 'panzer1', 0, 0, 1, 4);
+		panzer1 = new Counter('assets/pziiif.gif', 'panzer1', 0, 0, 1, 8);			// rad
 		panzer1.drawImage();
 		panzer1.ID = 1;		
 		allCounters[panzer1.ID]	= panzer1											// addon
 
-		panzer2 = new Counter('assets/pziiif.gif', 'panzer2', 100, 100, 1, 4);
+		panzer2 = new Counter('assets/pziiif.gif', 'panzer2', 100, 100, 1, 8);		// rad
 		panzer2.drawImage();
 		panzer2.ID = 2;
 		allCounters[panzer2.ID]	= panzer2
@@ -100,26 +99,29 @@
 				"(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
 			));
 			return matches ? decodeURIComponent(matches[1]) : undefined;
-		}
+		};
 
+		console.log("...");
+		console.log("we emit loginMePlease message ");
 		socket.emit("loginMePlease", username);
+
 		socket.on("message", function (players) {
 			console.log("You got Game with :")
 			console.log(players)                            // now we got {guest,host players} let, set owners of Panzer counters
-			panzer1.setOwner(players.host);
-			panzer2.setOwner(players.guest)
+			panzer1.setOwner(players.guest)//host);
+			panzer2.setOwner(players.host)
 		});
 		socket.on("gotDataToDraw", function (data) {       // data here shoul b e only starting point . drawAl Invokes once it really draws All 
 			client.drawAll(data)
 		});
 
-		socket.on("tt",function(data){		//[this.selectedCounter.ID,this.hexClicked]
+		socket.on("clickToMove",function(data){		//[this.selectedCounter.ID,this.hexClicked]
 
-			console.log(data);
+			//console.log(data);
 			client.processEnteringClicks(data);
 		});
 
-		socket.on("turnTo",function(data){
+		socket.on("turnTo",function(data){			//[this.selectedCounter.ID, [this.mySel.parentCounterObj.ID,'-=60',newSector]]
 			client.processEnteringTurns(data);
 		});
 		
@@ -132,24 +134,22 @@
 			}
 		});
 
-		function isClickedInNearHex(originHex,hexClicked) {		// event,
-			//var hexClicked = hex_round(pixel_to_hex(flat, { x: event.clientX, y: event.clientY })); // take it outside ? 
-			console.log(originHex);
-			console.log(hexClicked);
+		function isClickedInNearHex(originHex,hexClicked) {		
+			//console.log(originHex);
+			//console.log(hexClicked);
 			var listOfNtHexes = listOfNearestHexes(originHex, 1)
 
 			for (var i in listOfNtHexes) {											// optimize ?
 				if (deepEqual(listOfNtHexes[i], hexClicked)) {
-					console.log("es we clicked in Near Hex")
+					//console.log("es we clicked in Near Hex")
 					return true;
 				}
 			}
-			console.log("No we clicked not in Near Hex")
+			//console.log("No we clicked not in Near Hex")
 			return false
 		};
 
-		function isClickedInCoverArc(orientation,originHex,hexClicked) {		// event,
-			//var hexClicked = hex_round(pixel_to_hex(flat, { x: event.clientX, y: event.clientY }));
+		function isClickedInCoverArc(orientation,originHex,hexClicked) {		
 			var listOfNtHexes = creatingListOfNearestHexesInCA(orientation,originHex);
 			for (var i in listOfNtHexes) {											// optimize ?
 				if (deepEqual(listOfNtHexes[i], hexClicked)) {
@@ -185,17 +185,6 @@
 		 	return newSector
 		 }
 
-		// function initializingVariablesToDrawCoverArc(selection, event, hexClicked) {
-		// 	console.log("we initialize varz - hexClicked :");
-		// 	hexClicked = hex_round(pixel_to_hex(flat, { x: event.clientX, y: event.clientY })); // hex where we clicked with coords (q,r,s)
-		// 	console.log(hexClicked);
-		// 	sector = selection.orientation;	
-										
-		// 	selection.ownHex = hexClicked
-
-		// 	center = center_of_hex(flat, selection.ownHex);
-		// }
-
 		function clearPreviousSector(List) {
 			for (i in List) {
 				canvas.remove(List[i])
@@ -203,11 +192,6 @@
 			//console.log(List)
 		};
 
-		// function drawSector(List) {
-		// 	for (i in List) {
-		// 		canvas.add(List[i])
-		// 	}
-		// };
 		function highlight(q, r, s, color) {  			 // , listOfHexObjToRemove // drawing given  rect - change highlight to 'draw'
 			var rect = new fabric.Polygon(polygon_corners(flat, { q: q, r: r, s: s }), {
 				stroke: 'green',
