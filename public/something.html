@@ -15,7 +15,7 @@
 
 	<script src="/socket.io/socket.io.js"></script>
 	<div id="canvasContainer">
-		<canvas id="canvas" width="800" height="450" style="border:1px solid #000000"></canvas>
+		<canvas id="canvas" width="1800" height="645" style="border:1px solid #000000"></canvas>
 	</div>
 	<script>
 		
@@ -30,7 +30,7 @@
 		// var listOfHexObjToRemove1 = [];
 		//var center;
 		var layout_flat = Orientation(3.0 / 2.0, 0.0, Math.sqrt(3.0) / 2.0, Math.sqrt(3.0), 2.0 / 3.0, 0.0, -1.0 / 3.0, Math.sqrt(3.0) / 3.0, 0.0);
-		var flat = Layout(layout_flat, Point(40, 40), Point(0, 0));
+		var flat = Layout(layout_flat, Point(37.5, 37.5), Point(0, 0));
 		var allCounters = {}
 
 		document.getElementById('canvasContainer').addEventListener('contextmenu', function(e) {
@@ -38,6 +38,16 @@
 			//e.stopPropagation();
 		}, false);
 		
+		fabric.Image.fromURL('assets/bdp.gif', function (img) {
+			img.set({
+					left: 112,
+					top: 33,
+				});
+			img.selectable = false;
+			canvas.add(img)
+			canvas.sendToBack(img)
+		})
+
 		class Counter {
 			constructor(src, name, startinTop, startinLeft, orientation, radiusView) {
 				this.src = src;
@@ -83,11 +93,13 @@
 		}
 		var username = getCookie("userName");
 
+		// map = new Counter('assets/bdp.gif','map',0,0,1,1);
+		// map.drawImage();
 
 		panzer1 = new Counter('assets/pziiif.gif', 'panzer1', 0, 0, 1, 8);			// rad
 		panzer1.drawImage();
 		panzer1.ID = 1;		
-		allCounters[panzer1.ID]	= panzer1											// addon
+		allCounters[panzer1.ID]	= panzer1											
 
 		panzer2 = new Counter('assets/pziiif.gif', 'panzer2', 100, 100, 1, 8);		// rad
 		panzer2.drawImage();
@@ -195,7 +207,7 @@
 		function highlight(q, r, s, color) {  			 // , listOfHexObjToRemove // drawing given  rect - change highlight to 'draw'
 			var rect = new fabric.Polygon(polygon_corners(flat, { q: q, r: r, s: s }), {
 				stroke: 'green',
-				opacity: 0.7,
+				opacity: 0.3,
 				fill: color,
 				selectable: false
 			});
