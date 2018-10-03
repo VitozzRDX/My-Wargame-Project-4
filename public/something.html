@@ -49,36 +49,42 @@
 		})
 
 		class Counter {
-			constructor(src, name, startinTop, startinLeft, orientation, radiusView) {
+			constructor(src, name,orientation, radiusView,ownHex) {	//  startinTop, startinLeft, 
 				this.src = src;
 				this.name = name;
-
+				this.ownHex = ownHex;
 				//this.owner = none
 				//console.log([startinTop, startinLeft]);
 
 				this.orientation = orientation;
-				this.startinTop = startinTop;
-				this.startinLeft = startinLeft;
+				// this.startinTop = startinTop;
+				// this.startinLeft = startinLeft;
 				this.radiusView = radiusView
+				this.center = undefined
 			}
 			//getOrientation (self) { return self.orientation }  // do not need it yet
 			//fireMA() { console.log('fire') }
 		};
 		Counter.prototype.drawImage = function () {
 			self = this;
+			this.center = hex_to_pixel (flat,this.ownHex)
+			console.log('center :');
+			console.log(this.center)
+
 			//console.log("drawing")
 			//console.log([self.startinTop, self.startinLeft])
 			fabric.Image.fromURL(self.src, function (img) {
 				//console.log(' image loaded !');
 				img.set({
-					left: this.startinLeft,
-					top: this.startinTop,
+					left: this.center.x,
+					top: this.center.y,
 					originX: 'center',
 					originY: 'center'
 				});
 				img.orientation = this.orientation;
 				img.center = Point(img.width, img.height);
-				img.ownHex = hex_round(pixel_to_hex(flat, { x: this.startinLeft, y: this.startinTop }));
+				img.ownHex = this.ownHex;
+				//img.ownHex = hex_round(pixel_to_hex(flat, { x: this.startinLeft, y: this.startinTop }));
 				//img.owner = this.owner
 				// console.log("img.ownHex :");
 				// console.log(img.ownHex);
@@ -96,12 +102,12 @@
 		// map = new Counter('assets/bdp.gif','map',0,0,1,1);
 		// map.drawImage();
 
-		panzer1 = new Counter('assets/pziiif.gif', 'panzer1', 0, 0, 1, 8);			// rad
+		panzer1 = new Counter('assets/pziiif.gif', 'panzer1',1, 8,{q:0, r:0, s:0});			// rad
 		panzer1.drawImage();
 		panzer1.ID = 1;		
 		allCounters[panzer1.ID]	= panzer1											
 
-		panzer2 = new Counter('assets/pziiif.gif', 'panzer2', 100, 100, 1, 8);		// rad
+		panzer2 = new Counter('assets/pziiif.gif', 'panzer2',1, 8,{ q: 2, r: 0, s: -2 });		// rad
 		panzer2.drawImage();
 		panzer2.ID = 2;
 		allCounters[panzer2.ID]	= panzer2
