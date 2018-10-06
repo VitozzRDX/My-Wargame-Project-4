@@ -22,13 +22,8 @@
 		var canvas = new fabric.CanvasEx('canvas');
 		var socket = io();
 		var client = new Client()
-		//var mySel;
-		// var clickedInNearHex;
-		// var res;
 		var sector;
-		//var listOfHexObjToRemove = [];
-		// var listOfHexObjToRemove1 = [];
-		//var center;
+
 		var layout_flat = Orientation(3.0 / 2.0, 0.0, Math.sqrt(3.0) / 2.0, Math.sqrt(3.0), 2.0 / 3.0, 0.0, -1.0 / 3.0, Math.sqrt(3.0) / 3.0, 0.0);
 		var flat = Layout(layout_flat, Point(37.5, 37.5), Point(0, 0));
 		var allCounters = {}
@@ -49,32 +44,21 @@
 		})
 
 		class Counter {
-			constructor(src, name,orientation, radiusView,ownHex) {	//  startinTop, startinLeft, 
+			constructor(src, name,orientation, radiusView,ownHex) {	
 				this.src = src;
 				this.name = name;
 				this.ownHex = ownHex;
 				//this.owner = none
-				//console.log([startinTop, startinLeft]);
-
 				this.orientation = orientation;
-				// this.startinTop = startinTop;
-				// this.startinLeft = startinLeft;
 				this.radiusView = radiusView
 				this.center = undefined
 			}
-			//getOrientation (self) { return self.orientation }  // do not need it yet
-			//fireMA() { console.log('fire') }
 		};
+
 		Counter.prototype.drawImage = function () {
 			self = this;
 			this.center = hex_to_pixel (flat,this.ownHex)
-			console.log('center :');
-			console.log(this.center)
-
-			//console.log("drawing")
-			//console.log([self.startinTop, self.startinLeft])
 			fabric.Image.fromURL(self.src, function (img) {
-				//console.log(' image loaded !');
 				img.set({
 					left: this.center.x,
 					top: this.center.y,
@@ -84,13 +68,8 @@
 				img.orientation = this.orientation;
 				img.center = Point(img.width, img.height);
 				img.ownHex = this.ownHex;
-				//img.ownHex = hex_round(pixel_to_hex(flat, { x: this.startinLeft, y: this.startinTop }));
-				//img.owner = this.owner
-				// console.log("img.ownHex :");
-				// console.log(img.ownHex);
 				img.parentCounterObj = this         // good ! now we can remove all img. and get them by img.parentCounterObj
 				this.img = img
-				//self.img = img ??
 				canvas.add(img)
 			}.bind(this));
 		}
@@ -126,7 +105,7 @@
 		socket.on("message", function (players) {
 			console.log("You got Game with :")
 			console.log(players)                            // now we got {guest,host players} let, set owners of Panzer counters
-			panzer1.setOwner(players.guest)//host);
+			panzer1.setOwner(players.guest)
 			panzer2.setOwner(players.host)
 		});
 		socket.on("gotDataToDraw", function (data) {       // data here shoul b e only starting point . drawAl Invokes once it really draws All 
@@ -134,8 +113,6 @@
 		});
 
 		socket.on("clickToMove",function(data){		//[this.selectedCounter.ID,this.hexClicked]
-
-			//console.log(data);
 			client.processEnteringClicks(data);
 		});
 
@@ -153,17 +130,12 @@
 		});
 
 		function isClickedInNearHex(originHex,hexClicked) {		
-			//console.log(originHex);
-			//console.log(hexClicked);
 			var listOfNtHexes = listOfNearestHexes(originHex, 1)
-
 			for (var i in listOfNtHexes) {											// optimize ?
 				if (deepEqual(listOfNtHexes[i], hexClicked)) {
-					//console.log("es we clicked in Near Hex")
 					return true;
 				}
 			}
-			//console.log("No we clicked not in Near Hex")
 			return false
 		};
 
@@ -176,19 +148,6 @@
 			}
 			return false
 		};
-
-		// function creatingNewSectorToDrawOnMouseMove(event, selectedObj) {
-		// 	var hexOnMouseOver = hex_round(pixel_to_hex(flat, { x: event.clientX, y: event.clientY }));
-		// 	//res = selectedObj.ownHex;
-		// 	var newSector =
-		// 		hexOnMouseOver.r - selectedObj.ownHex.r <= 0 && hexOnMouseOver.s - selectedObj.ownHex.s <= 0 ? 0 :
-		// 			hexOnMouseOver.q - selectedObj.ownHex.q >= 0 && hexOnMouseOver.r - selectedObj.ownHex.r >= 0 ? 1 :
-		// 				hexOnMouseOver.s - selectedObj.ownHex.s <= 0 && hexOnMouseOver.q - selectedObj.ownHex.q <= 0 ? 2 :
-		// 					hexOnMouseOver.r - selectedObj.ownHex.r >= 0 && hexOnMouseOver.s - selectedObj.ownHex.s >= 0 ? 3 :
-		// 						hexOnMouseOver.q - selectedObj.ownHex.q <= 0 && hexOnMouseOver.r - selectedObj.ownHex.r <= 0 ? 4 :
-		// 							5;
-		// 	return newSector
-		// }
 
 		 function creatingNewSectorToDrawOnMouseMove(event, selectedObj) {
 		 	var hexOnMouseOver = hex_round(pixel_to_hex(flat, { x: event.clientX, y: event.clientY }));
@@ -207,7 +166,6 @@
 			for (i in List) {
 				canvas.remove(List[i])
 			}
-			//console.log(List)
 		};
 
 		function highlight(q, r, s, color) {  			 // , listOfHexObjToRemove // drawing given  rect - change highlight to 'draw'
@@ -241,7 +199,6 @@
 		function clearHighlightDraw (obj,orientation,maxRadius,startingHexCoord, color) {		//clearHighlightDraw(this,this.mySel.orientation, 3, this.mySel.ownHex, 'red');
 			clearPreviousSector(obj.listOfRectsToDraw);
 			obj.listOfRectsToDraw = highlightSector(orientation,maxRadius,startingHexCoord, color,obj.listOfRectsToDraw);
-			//drawSector(obj.listOfRectsToDraw);		// addon
 		};
 
 		function listOfNearestHexes(startingHexCoord, radius, direction) {
