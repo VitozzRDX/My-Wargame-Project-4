@@ -3,248 +3,36 @@
 
 <head>
 	<meta charset="UTF-8">
+	<script src="/socket.io/socket.io.js"></script>
 	<title>Socket.IO Gameserver Example</title>
-
 </head>
 
 <body>
+		
+		<script>
+				//var canvas = new fabric.CanvasEx('canvas');
+				var socket = io();
+			</script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/2.3.6/fabric.min.js"></script>
 	<script src="/fabric.canvasex.js"></script>
-	<script src="/HexFunctions.js"></script>
-	<script src="/client.js"></script>
+	
+	<script src="/main2.js" type=module></script>
+	<!-- <script type=module src="/HexFunctions.js">
+			import * as hexFunctions from './HexFunctions.js'
+		</script> -->
+	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/2.3.6/fabric.min.js"></script>
+	<script src="/fabric.canvasex.js"></script> -->
+	<!-- <script src="/HexFunctions.js"></script> -->
 
-	<script src="/socket.io/socket.io.js"></script>
+
+
 	<div id="canvasContainer">
-		<canvas id="canvas" width="1800" height="645" style="border:1px solid #000000"></canvas>
+		<canvas id="canvas" width="1800" height="700" style="border:1px solid #000000"></canvas>
 	</div>
 	<script>
-		
-		var canvas = new fabric.CanvasEx('canvas');
-		var socket = io();
-		var client = new Client()
-		var sector;
-
-		var layout_flat = Orientation(3.0 / 2.0, 0.0, Math.sqrt(3.0) / 2.0, Math.sqrt(3.0), 2.0 / 3.0, 0.0, -1.0 / 3.0, Math.sqrt(3.0) / 3.0, 0.0);
-		var flat = Layout(layout_flat, Point(37.5, 37.5), Point(0, 0));
-		var allCounters = {}
-
-		document.getElementById('canvasContainer').addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-			//e.stopPropagation();
-		}, false);
-		
-		fabric.Image.fromURL('assets/bdp.gif', function (img) {		// map !
-			img.set({
-					left: 112,
-					top: 33,
-				});
-			img.selectable = false;
-			canvas.add(img)
-			canvas.sendToBack(img)
-		})
-
-		class Counter {
-			constructor(src, name,orientation, radiusView,ownHex) {	
-				this.src = src;
-				this.name = name;
-				this.ownHex = ownHex;
-				//this.owner = none
-				this.orientation = orientation;
-				this.radiusView = radiusView
-				this.center = undefined
-			}
-		};
-
-		Counter.prototype.drawImage = function () {
-			self = this;
-			this.center = hex_to_pixel (flat,this.ownHex)
-			fabric.Image.fromURL(self.src, function (img) {
-				img.set({
-					left: this.center.x,
-					top: this.center.y,
-					originX: 'center',
-					originY: 'center'
-				});
-				img.orientation = this.orientation;
-				img.center = Point(img.width, img.height);
-				img.ownHex = this.ownHex;
-				img.parentCounterObj = this         // good ! now we can remove all img. and get them by img.parentCounterObj
-				this.img = img
-				canvas.add(img)
-			}.bind(this));
-		}
-		Counter.prototype.setOwner = function (owner) {
-			this.owner = owner
-		}
-		var username = getCookie("userName");
-
-		// map = new Counter('assets/bdp.gif','map',0,0,1,1);
-		// map.drawImage();
-
-		panzer1 = new Counter('assets/pziiif.gif', 'panzer1',1, 8,{q:0, r:0, s:0});			// rad
-		panzer1.drawImage();
-		panzer1.ID = 1;		
-		allCounters[panzer1.ID]	= panzer1											
-
-		panzer2 = new Counter('assets/pziiif.gif', 'panzer2',1, 8,{ q: 2, r: 0, s: -2 });		// rad
-		panzer2.drawImage();
-		panzer2.ID = 2;
-		allCounters[panzer2.ID]	= panzer2
-
-		function getCookie(name) {
-			var matches = document.cookie.match(new RegExp(
-				"(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
-			));
-			return matches ? decodeURIComponent(matches[1]) : undefined;
-		};
-
-		console.log("...");
-		console.log("we emit loginMePlease message ");
-		socket.emit("loginMePlease", username);
-
-		socket.on("message", function (players) {
-			console.log("You got Game with :")
-			console.log(players)                            // now we got {guest,host players} let, set owners of Panzer counters
-			panzer1.setOwner(players.guest)
-			panzer2.setOwner(players.host)
-		});
-		socket.on("gotDataToDraw", function (data) {       // data here shoul b e only starting point . drawAl Invokes once it really draws All 
-			client.drawAll(data)
-		});
-
-		socket.on("clickToMove",function(data){		//[this.selectedCounter.ID,this.hexClicked]
-			client.processEnteringClicks(data);
-		});
-
-		socket.on("turnTo",function(data){			//[this.selectedCounter.ID, [this.mySel.parentCounterObj.ID,'-=60',newSector]]
-			client.processEnteringTurns(data);
-		});
-		
-		canvas.on({
-			'mouse:down': function (options) {
-				client.processClicks(options);
-			},
-			'mouse:move': function (options) {
-				client.processMouseMove(options);           // No ! client shold not process it cause server doesn't need to know where a player moved his mouse
-			}
-		});
-
-		function isClickedInNearHex(originHex,hexClicked) {		
-			var listOfNtHexes = listOfNearestHexes(originHex, 1)
-			for (var i in listOfNtHexes) {											// optimize ?
-				if (deepEqual(listOfNtHexes[i], hexClicked)) {
-					return true;
-				}
-			}
-			return false
-		};
-
-		function isClickedInCoverArc(orientation,originHex,hexClicked) {		
-			var listOfNtHexes = creatingListOfNearestHexesInCA(orientation,originHex);
-			for (var i in listOfNtHexes) {											// optimize ?
-				if (deepEqual(listOfNtHexes[i], hexClicked)) {
-					return true;
-				}
-			}
-			return false
-		};
-
-		 function creatingNewSectorToDrawOnMouseMove(event, selectedObj) {
-		 	var hexOnMouseOver = hex_round(pixel_to_hex(flat, { x: event.clientX, y: event.clientY }));
-		 	var res = selectedObj.ownHex;
-		 	var newSector =
-		 		hexOnMouseOver.r - res.r <= 0 && hexOnMouseOver.s - res.s <= 0 ? 0 :
-		 			hexOnMouseOver.q - res.q >= 0 && hexOnMouseOver.r - res.r >= 0 ? 1 :
-		 				hexOnMouseOver.s - res.s <= 0 && hexOnMouseOver.q - res.q <= 0 ? 2 :
-		 					hexOnMouseOver.r - res.r >= 0 && hexOnMouseOver.s - res.s >= 0 ? 3 :
-		 						hexOnMouseOver.q - res.q <= 0 && hexOnMouseOver.r - res.r <= 0 ? 4 :
-		 							5;
-		 	return newSector
-		 }
-
-		function clearPreviousSector(List) {
-			for (i in List) {
-				canvas.remove(List[i])
-			}
-		};
-
-		function highlight(q, r, s, color) {  			 // , listOfHexObjToRemove // drawing given  rect - change highlight to 'draw'
-			var rect = new fabric.Polygon(polygon_corners(flat, { q: q, r: r, s: s }), {
-				stroke: 'green',
-				opacity: 0.3,
-				fill: color,
-				selectable: false
-			});
-			canvas.add(rect);
-			return rect		// addon
-		}
-
-		function highlightSector(sector, maxRadius, startingHexCoord, color,list) {			//, listOfHexObjToRemove// sector - orientation , maxPad - distance of look , color - realize !
-			var list = []
-			for (var radius = 1; radius <= maxRadius; radius++) {
-				for (var a = 0; a >= -radius; a--) {
-					var b = - radius - a;
-
-					if (sector == 0) {list.push(highlight(radius + startingHexCoord.q, a + startingHexCoord.r, b + startingHexCoord.s, color))};	// , listOfHexObjToRemove
-					if (sector == 1) {list.push(highlight(-a + startingHexCoord.q, -b + startingHexCoord.r, -radius + startingHexCoord.s, color))};
-					if (sector == 2) {list.push(highlight(b + startingHexCoord.q, radius + startingHexCoord.r, a + startingHexCoord.s, color))};
-					if (sector == 3) {list.push(highlight(-radius + startingHexCoord.q, -a + startingHexCoord.r, -b + startingHexCoord.s, color))};
-					if (sector == 4) {list.push(highlight(a + startingHexCoord.q, b + startingHexCoord.r, radius + startingHexCoord.s, color))};
-					if (sector == 5) {list.push(highlight(-b + startingHexCoord.q, -radius + startingHexCoord.r, -a + startingHexCoord.s, color))};
-				}
-			}
-			return list
-		};
-
-		function clearHighlightDraw (obj,orientation,maxRadius,startingHexCoord, color) {		//clearHighlightDraw(this,this.mySel.orientation, 3, this.mySel.ownHex, 'red');
-			clearPreviousSector(obj.listOfRectsToDraw);
-			obj.listOfRectsToDraw = highlightSector(orientation,maxRadius,startingHexCoord, color,obj.listOfRectsToDraw);
-		};
-
-		function listOfNearestHexes(startingHexCoord, radius, direction) {
-			var results = [];
-			var hex = hex_add(startingHexCoord, hex_scale(hex_direction(4), radius));              // optimize it  - radius is always == 1
-			for (var i = 0; i < 6; i++) {
-				for (var j = 0; j < radius; j++) {
-					results.push(hex);
-					hex = hex_neighbor(hex, i)
-				}
-			}
-			return results
-		};
-
-		function creatingListOfNearestHexesInCA(sector, startingHexCoord) {	//,list
-			var list = []
-			var radius = 1
-			for (var a = 0; a >= -1; a--) {
-				var b = - 1 - a;
-				if (sector == 0) list.push({ q: radius + startingHexCoord.q, r: a + startingHexCoord.r, s: b + startingHexCoord.s });
-				if (sector == 1) list.push({ q: -a + startingHexCoord.q, r: -b + startingHexCoord.r, s: -radius + startingHexCoord.s });
-				if (sector == 2) list.push({ q: b + startingHexCoord.q, r: radius + startingHexCoord.r, s: a + startingHexCoord.s });
-				if (sector == 3) list.push({ q: -radius + startingHexCoord.q, r: -a + startingHexCoord.r, s: -b + startingHexCoord.s });
-				if (sector == 4) list.push({ q: a + startingHexCoord.q, r: b + startingHexCoord.r, s: radius + startingHexCoord.s });
-				if (sector == 5) list.push({ q: -b + startingHexCoord.q, r: -radius + startingHexCoord.r, s: -a + startingHexCoord.s });
-			}
-			return list
-		};
-
-		function deepEqual(obj1, obj2) {
-			return JSON.stringify(obj1) === JSON.stringify(obj2);
-		};
-
-		function differenceBetweenCAandSector(a, b) {
-			return a - b
-		};
-
-		function getNumberAndSignToTurnCounter(mySec, secClicked) {
-			var diff = differenceBetweenCAandSector(mySec, secClicked);
-			if (diff === 1 || diff === -5) return 1;   // important ! , though now it is only one possibility for those diffs , but it should by chosen by player how he wants to turn its counter
-			if (diff === 2 || diff === -4) return 2;
-			if (diff === 3 || diff === -3) return 3;
-			if (diff === -1 || diff === 5) return -1;
-			if (diff === -2 || diff === 4) return -2;
-		}
-	</script>
+			var canvas = new fabric.CanvasEx('canvas');
+			//var socket = io();
+		</script>
 </body>
 
 </html>

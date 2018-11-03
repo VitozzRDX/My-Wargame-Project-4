@@ -21,7 +21,10 @@ var allGames = {};
 app.use(cookieParser());
 
 app.use(function (req, res, next) {                 
+    console.log('we are inside app.use . we got req with :')
     var cookieUserName = req.cookies.userName;
+    console.log(cookieUserName)
+    console.log( '')
     if (cookieUserName === undefined) {                // On this site we are for the first time ! (or it was long ago.)
         cookieUserNameIsHere = false
     }
@@ -44,14 +47,22 @@ app.get('/something.html', function (req, res) {
 
 io.on('connection', function (socket) {
     // io.sockets.connected is a Socket.io internal array of the sockets currently connected to the server. use it !
-
+    console.log('we got connection !')
     if (socket.handshake.headers.cookie) {
+        console.log('socket.handshake.headers.cookie is here :')
+
         var cookies = cookie.parse(socket.handshake.headers.cookie)
+
+        console.log(cookies.userName)
+
+        allsockets2[cookies.userName] = socket;
     };
     allsockets[socket.id] = socket;
 
     if (cookieUserNameIsHere) {
+        console.log('cookieUserNameIsHere so allsockets2 is:')
         allsockets2[cookies.userName] = socket;
+        console.log(Object.keys(allsockets2));
         socket.username = cookies.userName;
     }
 
@@ -64,12 +75,16 @@ io.on('connection', function (socket) {
         console.log("are inside 'loginMePlease'");
 
         socket.username = username;
+        
+        allsockets2[username] = socket;
+
         if (!allUsers[username]) {                           // it could be situation when cookie with UserName was destroyed but user still here ,to avoid it let's check
             var user = new User(username);
             allUsers[socket.username] = user;
         } else {
             var user = allUsers[socket.username];
         }
+        
         if (user.startedGameArray) {                                   
             socket.emit("showYourGames", user.startedGameArray)
         }
@@ -200,6 +215,8 @@ io.on('connection', function (socket) {
             console.log(socket.username);
             console.log("... got moveTo message . Launching game.processOppsClick ");
             var oppusersocket = allsockets2[user.startedGameArray[1]];
+            console.log("allsockets2 is :");
+            console.log(Object.keys(allsockets2))
             game.processOppsClick (data,oppusersocket)
         });
 
