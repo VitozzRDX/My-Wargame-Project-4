@@ -55,9 +55,12 @@ export function hex_to_pixel(layout, h) {
 };
 
 export function pixel_to_hex(layout, p) {
+
 	var M = layout.orientation;
 	var size = layout.size;
 	var origin = layout.origin;
+
+
 	var pt = Point((p.x - origin.x) / size.x, (p.y - origin.y) / size.y);
 	var q = M.b0 * pt.x + M.b1 * pt.y;
 	var r = M.b2 * pt.x + M.b3 * pt.y;
@@ -109,8 +112,9 @@ export function isClickedInNearHex(originHex, hexClicked) {
 	return false
 };
 
-export function isClickedInCoverArc(orientation,originHex,hexClicked) {		
+export function isClickedInCoverArc(orientation,originHex,hexClicked) {
 	var listOfNtHexes = creatingListOfNearestHexesInCA(orientation,originHex);
+	console.log(listOfNtHexes)	
 	for (var i in listOfNtHexes) {											// optimize ?
 		if (deepEqual(listOfNtHexes[i], hexClicked)) {
 			return true;
@@ -121,6 +125,7 @@ export function isClickedInCoverArc(orientation,originHex,hexClicked) {
 
 
 export function creatingListOfNearestHexesInCA(sector, startingHexCoord) {	//,list
+	console.log([sector, startingHexCoord])
 	var list = []
 	var radius = 1
 	for (var a = 0; a >= -1; a--) {

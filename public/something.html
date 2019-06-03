@@ -4,35 +4,29 @@
 <head>
 	<meta charset="UTF-8">
 	<script src="/socket.io/socket.io.js"></script>
-	<title>Socket.IO Gameserver Example</title>
+	<title>ASL</title>
+	<link rel="stylesheet" type="text/css" href="gamepagestyle.css" media="screen" />
+
 </head>
 
 <body>
-		
-		<script>
-				//var canvas = new fabric.CanvasEx('canvas');
-				var socket = io();
-			</script>
+
+
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/2.3.6/fabric.min.js"></script>
 	<script src="/fabric.canvasex.js"></script>
-	
 	<script src="/main2.js" type=module></script>
-	<!-- <script type=module src="/HexFunctions.js">
-			import * as hexFunctions from './HexFunctions.js'
-		</script> -->
-	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/2.3.6/fabric.min.js"></script>
-	<script src="/fabric.canvasex.js"></script> -->
-	<!-- <script src="/HexFunctions.js"></script> -->
-
-
 
 	<div id="canvasContainer">
-		<canvas id="canvas" width="1800" height="700" style="border:1px solid #000000"></canvas>
+		<canvas id="canvas" width="1300" height="500" style="border:1px solid #000000"></canvas>
 	</div>
-	<script>
-			var canvas = new fabric.CanvasEx('canvas');
-			//var socket = io();
-		</script>
+	<div id="canvasContainer2">
+		<canvas id="canvas2" width="150" height="600" style="border:1px solid #000000"></canvas>
+	</div>
+	
+	<div id="UIContainer"></div>
+
+	
+
 </body>
 
 </html>

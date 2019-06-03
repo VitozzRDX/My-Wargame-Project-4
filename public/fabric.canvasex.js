@@ -174,6 +174,7 @@
             self.callSuper('_initEventListeners');
 
             addListener(self.upperCanvasEl, 'dblclick', self._onDoubleClick);
+            //addListener(document.body, 'keydown', function (options) {console.log(options)})
         },
 
         _checkTargetForGroupObject: function (obj, pointer) {

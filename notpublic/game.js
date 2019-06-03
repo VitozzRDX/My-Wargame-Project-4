@@ -1,16 +1,17 @@
 // Game is on Server side 
 
-function Point(x, y) {
-    return { x: x, y: y };
-};
+let tableCounter = require('./counters');
 
-function Orientation(f0, f1, f2, f3, b0, b1, b2, b3, start_angle) {
-    return { f0: f0, f1: f1, f2: f2, f3: f3, b0: b0, b1: b1, b2: b2, b3: b3, start_angle: start_angle };
-};
+//console.log(tableCounter)
 
-function Layout(orientation, size, origin) {
-    return { orientation: orientation, size: size, origin: origin };
-};
+
+function forMPCostCalc (ownHex,hexClicked,dict) {
+    if(dict[JSON.stringify([ownHex,hexClicked])]!=undefined){
+        return dict[JSON.stringify([ownHex,hexClicked])]
+    }else {
+        return 1
+    }
+}
 
 function Hex(q, r, s) {
     if (Math.round(q + r + s) !== 0) throw "q + r + s must be 0";
@@ -21,69 +22,6 @@ var hex_directions = [Hex(1, 0, -1), Hex(1, -1, 0), Hex(0, -1, 1), Hex(-1, 0, 1)
 
 function hex_direction(direction) {
     return hex_directions[direction];
-};
-
-function hex_round(h) {
-    var qi = Math.round(h.q);
-    var ri = Math.round(h.r);
-    var si = Math.round(h.s);
-    var q_diff = Math.abs(qi - h.q);
-    var r_diff = Math.abs(ri - h.r);
-    var s_diff = Math.abs(si - h.s);
-    if (q_diff > r_diff && q_diff > s_diff) {
-        qi = -ri - si;
-    }
-    else
-        if (r_diff > s_diff) {
-            ri = -qi - si;
-        }
-        else {
-            si = -qi - ri;
-        }
-
-    return Hex(qi, ri, si);
-};
-
-function hex_to_pixel(layout, h) {
-    var M = layout.orientation;
-    var size = layout.size;
-    var origin = layout.origin;
-    var x = (M.f0 * h.q + M.f1 * h.r) * size.x;
-    var y = (M.f2 * h.q + M.f3 * h.r) * size.y;
-    return Point(x + origin.x, y + origin.y);
-};
-
-function pixel_to_hex(layout, p) {
-    var M = layout.orientation;
-    var size = layout.size;
-    var origin = layout.origin;
-    var pt = Point((p.x - origin.x) / size.x, (p.y - origin.y) / size.y);
-    var q = M.b0 * pt.x + M.b1 * pt.y;
-    var r = M.b2 * pt.x + M.b3 * pt.y;
-
-    return Hex(q, r, -q - r);
-};
-
-function hex_corner_offset(layout, corner) {
-    var M = layout.orientation;
-    var size = layout.size;
-    var angle = 2.0 * Math.PI * (M.start_angle - corner) / 6;
-    return Point(size.x * Math.cos(angle), size.y * Math.sin(angle));
-};
-
-function polygon_corners(layout, h) {
-    var corners = [];
-    var center = hex_to_pixel(layout, h);
-
-    for (var i = 0; i < 6; i++) {
-        var offset = hex_corner_offset(layout, i);
-        corners.push(Point(center.x + offset.x, center.y + offset.y));
-    }
-    return corners;
-};
-
-function center_of_hex(layout, h) {
-    return hex_to_pixel(layout, h);
 };
 
 function hex_scale(a, k) {
@@ -102,30 +40,182 @@ function deepEqual(obj1, obj2) {
     return JSON.stringify(obj1) === JSON.stringify(obj2);
 };
 
-class Counter {
-    constructor(orientation, radiusView, owner, startingPosHex) {
-        //this.name = name;
-        this.owner = owner;
-        this.orientation = orientation;
-        this.radiusView = radiusView;
-        //this.ID = (Math.random() + 1).toString(36).slice(2, 18);
-        this.ownHex = startingPosHex;
-    }
-};
+
 
 var Game = function () {
     this.gamesession = [];
     this.ID = (Math.random() + 1).toString(36).slice(2, 18);
     this.allCounters = {};      //   {id:counterobj}
-    this.players = {};          // addon
+    this.players = {};          
+    this.state = {}; //{players:game.players,whoseTurnIsItNow:whoseTurnIsItNow,phase:phase}
+    this.halfturn = 0;
+    this.rallyPhaseStatus = undefined;
+//------------------------------------------------------------------------------------------------
+    this.classesTable = tableCounter ;
+    this.sides = {};
+    this.firstPlayer = undefined;
+    this.scenario  = undefined;
+    this.allScenarios = {
+        'Last Ally, Last Victory':  {
+            background : [
+                { src :'assets/bdv.gif', coords : {top:0,left:112} },
+                { src :'assets/bdu1gif.gif', coords : {top:1,left:112} },
+                { src :'assets/bdt.gif', coords :{top:2,left:112} },
+            ],
+            startingSide : 'Nazi',
+            startingSideELR : 3,
+            startingSidePictureSrc : 'assets/turnphaseaxis.gif',
+            secondPlayer : 'Axis',
+            secondPlayerELR : 3,
+            firstPlayerStartingPhase : 'firstPlayerRallyPhase',          // refactor to firstPlayerSettingPhase
+            secondPlayerStartingPhase : 'secondPlayerRallyPhase',
+
+            setOfOptionsforCounters : [ 
+                // { 
+                //     ownHexes : [{ q: 4, r: 2, s: -6 }],
+                //     options : {class : 'AFV' , src: 'assets/IS2.gif', name: 'IS2', orientation: 1 ,owner: 'Axis',radiusView : 4, wreckSide :'assets/IS2b.gif'}
+                // },
+                // {
+                //     ownHexes : [ { q: 2, r: 0, s: -2 }],
+                //     options : {class : 'AFV' , src: 'assets/pziiif.gif', name: 'Panzer4', orientation: 1 ,owner: 'Nazi',radiusView : 4, wreckSide :'assets/pziiidb.gif'}
+                // },
+                // {
+                //     ownHexes : [{ q: 7, r: 5, s: -12 },{ q: 8, r: 4, s: -12 }],
+                //     //options : { class : 'ManCounters',src: 'assets/ru628S.gif', name: 'ruMMC',otherSideSrc : 'assets/ruh7b.gif', owner: 'Axis',ELR : 3,squadType : 'ruSquadE-0'}
+                //     options : { class : 'ManCounters', name: 'ruMMC', owner: 'Axis',ELR : 3,type : 'ruSquadE-0'}
+                // },
+                // {
+                //     ownHexes : [{ q: 3, r: 1, s: -4 },{ q: 4, r: 0, s: -4 },{ q: 4, r: 0, s: -4 }],
+                //     options : { class : 'ManCounters', name: 'geMMC', owner: 'Nazi',ELR : 3,type : 'geSquadE-0'}
+                // },
+                // //--------------------------------------------------------------------------------------------------
+                // {
+                //     ownHexes : [{ q: 5, r: -1, s: -4 }],
+                //     options : { class : 'SingleManCounters',src: 'assets/geL91.gif', name: 'geMMC', otherSideSrc : 'assets/geL91b.gif',owner: 'Nazi',type}
+                // },
+                //--------------------------------------------------------------------------------------------------
+                { 
+                    ownHexes : [{ q: 4, r: 2, s: -6 }],
+                    options : {class : 'AFV' , name: 'IS2', orientation: 1 ,owner: 'Axis',type : 'IS2'}
+                },
+                {
+                    ownHexes : [ { q: 2, r: 0, s: -2 }],
+                    options : {class : 'AFV' , name: 'Panzer3', orientation: 1 ,owner: 'Nazi',type : 'panzer3'}
+                },
+                {
+                    ownHexes : [{ q: 7, r: 5, s: -12 },{ q: 8, r: 4, s: -12 }],
+                    options : { class : 'ManCounters', name: 'ruMMC', owner: 'Axis',ELR : 3,type : 'ruSquadE-0'}
+                },
+                {
+                    ownHexes : [{ q: 3, r: 1, s: -4 },{ q: 4, r: 0, s: -4 },{ q: 4, r: 0, s: -4 }],
+                    options : { class : 'ManCounters', name: 'geMMC', owner: 'Nazi',ELR : 3,type : 'geSquadE-0'}
+                },
+                //--------------------------------------------------------------------------------------------------
+            ]
+            // turn number
+            // map
+        }
+    }
 };
 
-Game.prototype.createCounter = function (owner, startingPosHex, orientation, radiusView) { // here we should give counter his owner , starting Pos , orientation , 
-    var counterData = { "owner": owner, "startingPos": startingPosHex, "orientation": orientation };
-    //this.gameState.push()     ??? 
-    var counter = new Counter(orientation, radiusView, owner, startingPosHex)      // ?? this.counter ?
-    //this.allCounters[counter.ID] = counter;
-    //this.allCounters[counter.ID] = new Counter (orientation,radiusView,owner,startingPosHex) ;
+Game.prototype._createCounters = function (setOfOptionsforCounters){
+    for (let i of setOfOptionsforCounters) {            
+        
+
+        for (let e of i.ownHexes) {
+            let Class = this.classesTable[i.options.class]
+            var copy = Object.assign({},i.options);
+            //console.log(copy)
+            copy['ownHex'] = e
+            //console.log(copy)
+
+            new  Class (copy)
+            copy = {}
+        }
+    }
+};
+
+
+
+// Counter.prototype.setParametersForClient = function() {
+//     this.parametersForClient = {
+//         src : this.src ,
+//         class : this.class,
+//         ownHex : this.ownHex,
+//         name: this.name,
+//     }
+// };
+
+
+//------------------------------------------------------------------------------------------------
+
+Game.prototype.setFirstPlayer = function(player) {
+    this.firstPlayer = player
+}
+
+Game.prototype.setScenario = function(scenario) {
+    this.scenario = this.allScenarios[scenario] 
+}
+//------------------------------------------------------------------------------------------------
+Game.prototype.endTurn = function() {
+    this.halfturn = this.halfturn + 1
+    console.log('halfturn',this.halfturn);
+    
+    this.setPhase('RallyPhase')
+};
+
+Game.prototype.setPhase = function (phase) {
+    console.log(phase)
+    this.state.phase = phase
+};
+
+Game.prototype.switchPlayers = function (oppusersocket) {
+    console.log('emitting changeTurn msg')
+    oppusersocket.emit("changeTurn") 
+    this.setplayerWhooseTurn(oppusersocket.username)
+};
+
+
+Game.prototype.switchPhase = function () {
+    console.log('switching Phase')
+    let phase = this.state.phase
+    console.log(phase)
+    switch (phase) {
+        case 'RallyPhase' :
+            console.log(phase)
+            this.setPhase ('PrepFirePhase')
+            break;
+        case 'PrepFirePhase' :
+            console.log(phase)
+            this.setPhase ('MovementPhase')       //firstPlayerDefenciveFirePhase // refactor to just MovementPhase cause it is both Second and First Pl
+            break;
+        case 'MovementPhase' :
+		    console.log("​Game.prototype.switchPhase -> 'MovementPhase'", 'MovementPhase')
+            this.setPhase ('DefenciveFirePhase') 
+            break;
+        case 'DefenciveFirePhase' :
+            console.log(phase)
+            this.setPhase ('AdvancingFirePhase')        // 
+            break;
+        case 'AdvancingFirePhase' :
+            console.log(phase)
+            this.setPhase ('RoutPhase')        // 
+            break;
+        case 'RoutPhase' :
+            console.log(phase)
+            this.setPhase ('AdvancePhase')        // 
+            break;
+        case 'AdvancePhase' :
+            console.log(phase)
+            this.setPhase ('CloseCombatPhase')        // 
+            break;
+    }
+}
+
+Game.prototype.createCounter = function (owner, startingPosHex, orientation, radiusView,movingPoints) { // here we should give counter his owner , starting Pos , orientation , 
+
+    let counter = new Counter(orientation, radiusView, owner, startingPosHex,movingPoints)      // 5 is the number of MP
+
     return counter
 }
 Game.prototype.startSession = function (guestsocket, hostsocket) {
@@ -140,79 +230,10 @@ Game.prototype.startSession = function (guestsocket, hostsocket) {
 }
 
 Game.prototype.setplayerWhooseTurn = function (thisplayershostorguest) {
-    this.playerWhooseTurnItIs = thisplayershostorguest
+    this.state.whoseTurnIsItNow = thisplayershostorguest
 }
 
-Counter.prototype.isClickedInNearHex = function (originHex, hexClicked) {
-    console.log(" we are inside isClickedInNearHex ")
-    console.log("originHex :");
-    console.log(originHex)
-    console.log("hexClicked :");
-    console.log(hexClicked);
 
-    var listOfNtHexes = this.listOfNearestHexes(originHex, 1);
-    console.log("listOfNtHexes :")
-    console.log(listOfNtHexes)
-    for (var i in listOfNtHexes) {											// optimize ?
-        if (deepEqual(listOfNtHexes[i], hexClicked)) {
-            console.log("es we clicked in Near Hex")
-            return true;
-        }
-    }
-    console.log("No we clicked not in Near Hex")
-    return false
-}
-
-Counter.prototype.isClickedInCoverArc = function (orientation, originHex, hexClicked) {
-    console.log(" we are inside isClickedInCoverArc ");
-    console.log("originHex :");
-    console.log(originHex)
-    console.log("hexClicked :");
-    console.log(hexClicked);
-
-    var listOfNtHexes = this.creatingListOfNearestHexesInCA(orientation, originHex);
-
-    console.log("listOfNtHexes :")
-    console.log(listOfNtHexes)
-
-    for (var i in listOfNtHexes) {											// optimize ?
-        if (deepEqual(listOfNtHexes[i], hexClicked)) {
-            console.log("Yes we clicked in CA")
-            return true;
-        }
-    }
-    console.log("No we clicked not in CA")
-    return false
-}
-
-Counter.prototype.listOfNearestHexes = function (startingHexCoord, radius) {
-    console.log(" we are inside listOfNearestHexes ")
-    console.log(startingHexCoord)
-    var results = [];
-    var hex = hex_add(startingHexCoord, hex_scale(hex_direction(4), radius));              // optimize it  - radius is always == 1  // startingHex.add()
-    for (var i = 0; i < 6; i++) {
-        for (var j = 0; j < radius; j++) {
-            results.push(hex);
-            hex = hex_neighbor(hex, i)
-        }
-    }
-    return results
-}
-
-Counter.prototype.creatingListOfNearestHexesInCA = function (sector, startingHexCoord) {	//,list
-    var list = []
-    var radius = 1
-    for (var a = 0; a >= -1; a--) {
-        var b = - 1 - a;
-        if (sector == 0) list.push({ q: radius + startingHexCoord.q, r: a + startingHexCoord.r, s: b + startingHexCoord.s });
-        if (sector == 1) list.push({ q: -a + startingHexCoord.q, r: -b + startingHexCoord.r, s: -radius + startingHexCoord.s });
-        if (sector == 2) list.push({ q: b + startingHexCoord.q, r: radius + startingHexCoord.r, s: a + startingHexCoord.s });
-        if (sector == 3) list.push({ q: -radius + startingHexCoord.q, r: -a + startingHexCoord.r, s: -b + startingHexCoord.s });
-        if (sector == 4) list.push({ q: a + startingHexCoord.q, r: b + startingHexCoord.r, s: radius + startingHexCoord.s });
-        if (sector == 5) list.push({ q: -b + startingHexCoord.q, r: -radius + startingHexCoord.r, s: -a + startingHexCoord.s });
-    }
-    return list
-};
 Game.prototype.processTurnClicks = function (data,oppusersocket) {  // data = [this.mySel.parentCounterObj.ID,'-=60',newSector]
     console.log(data)
     this.selectedCounter = this.allCounters[data[0]];
@@ -221,23 +242,55 @@ Game.prototype.processTurnClicks = function (data,oppusersocket) {  // data = [t
 }; 
 
 Game.prototype.processOppsClick = function (data,oppusersocket) {          //[this.mySel.ID,this.hexClicked] processTurnClicks
+    
     console.log(data)
-    this.selectedCounter = this.allCounters[data[0]]                       // let us ind counter b ID
+    let hexClicked = data[1];
+    this.selectedCounter = this.allCounters[data[0]];                   // let us ind counter b ID
+
     console.log(this.selectedCounter);
-    console.log(this.playerWhooseTurnItIs);
-    // if (this.selectedCounter.owner === this.playerWhooseTurnItIs) {
-    //     console.log("this.selectedCounter.owner === this.playerWhooseTurnItIs")
-    //     console.log("...")
+    console.log("let's check this.state.whoseTurnIsItNow : ")
+    console.log(this.state.whoseTurnIsItNow);
+
+    if (this.selectedCounter.owner === this.state.whoseTurnIsItNow) {
+        console.log("this.selectedCounter.owner === this.state.whoseTurnIsItNow")
+        console.log("...")
         if (this.selectedCounter.isClickedInNearHex(this.selectedCounter.ownHex, data[1])) {
             if (this.selectedCounter.isClickedInCoverArc(this.selectedCounter.orientation, this.selectedCounter.ownHex, data[1])) {
                 console.log("es we clicked in Near Hex and isClickedInCoverArc")
-                this.selectedCounter.ownHex = data[1];
-                console.log ("we emitting clickToMove to oppuser with this data :");
-                console.log ([this.selectedCounter.ID, data[1]]);
-                oppusersocket.emit("clickToMove",[this.selectedCounter.ID, data[1]])
+
+                console.log("we are spending MP's. It's Mp now :")
+                console.log(this.selectedCounter.movingPoints)
+
+                oppusersocket.emit("clickToMove",[this.selectedCounter.ID, hexClicked]);
+
+                if (this.selectedCounter.movingPoints == 0||this.selectedCounter.movingPoints<0 ) {
+                    this.selectedCounter.movingPoints = 5
+                    console.log(" MP is off !");
+
+                    //oppusersocket.emit("changeTurnOrder",this.state)                    // refactor  here we need only this.state.....
+                }
             }
         }
-    //}
+    }
 };
+
+Game.prototype.processKeys = function(oppusersocket) {
+    console.log("we are processingKeys");
+    console.log("this.state.phase: ");
+    console.log(this.state.phase)
+    if (this.state.phase === "firstPlayerMovementPhase") {
+        this.state.phase = "pausedforFiring";
+        oppusersocket.emit("pausedforFiring")
+    } else
+    if (this.state.phase === "pausedforFiring") {
+        this.state.phase = "firstPlayerMovementPhase"
+        oppusersocket.emit("endofpauseforfiring")
+    }
+}
+
+// Game.prototype.processEndRally = function(oppusersocket) {
+
+// }
+
 
 module.exports = Game

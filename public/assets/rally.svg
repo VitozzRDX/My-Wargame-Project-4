@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:osb="http://www.openswatchbook.org/uri/2009/osb"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="17.740116mm"
+   height="14.173779mm"
+   viewBox="0 0 62.85868 50.222054"
+   id="svg3341"
+   version="1.1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="rally.svg">
+  <defs
+     id="defs3343">
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient4154">
+      <stop
+         style="stop-color:#ff0000;stop-opacity:1;"
+         offset="0"
+         id="stop4156" />
+      <stop
+         style="stop-color:#ff0000;stop-opacity:0;"
+         offset="1"
+         id="stop4158" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient4170"
+       osb:paint="gradient">
+      <stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="0"
+         id="stop4172" />
+      <stop
+         style="stop-color:#000000;stop-opacity:0;"
+         offset="1"
+         id="stop4174" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4154"
+       id="linearGradient4160"
+       x1="135.19814"
+       y1="532.52118"
+       x2="243.34383"
+       y2="532.52118"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4154"
+       id="linearGradient4162"
+       gradientUnits="userSpaceOnUse"
+       x1="190.73045"
+       y1="501.34152"
+       x2="190.30734"
+       y2="564.16968" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="5.6"
+     inkscape:cx="79.943264"
+     inkscape:cy="18.62908"
+     inkscape:document-units="px"
+     inkscape:current-layer="g4173"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:window-width="1366"
+     inkscape:window-height="705"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata3346">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-125.60358,-604.45601)">
+    <g
+       id="g4173">
+      <rect
+         rx="4.0706635"
+         ry="11.446171"
+         y="604.65479"
+         x="125.80235"
+         height="49.824509"
+         width="62.461136"
+         id="rect4352"
+         style="opacity:1;fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.39754772;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <g
+         id="g4360"
+         transform="matrix(0.57158908,0,0,1.9047773,55.233539,-712.77845)">
+        <rect
+           rx="4.7107725"
+           ry="4.7611632"
+           y="692.91254"
+           x="128.56857"
+           height="23.755203"
+           width="99.088791"
+           id="rect4183"
+           style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.30000001;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      </g>
+      <g
+         style="opacity:1;fill:url(#linearGradient4160);fill-opacity:1"
+         transform="matrix(0.53442682,0,0,0.71120439,55.90581,250.82806)"
+         id="g4156">
+        <rect
+           style="fill:url(#linearGradient4162);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.94897854;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           id="rect3336"
+           width="107.19672"
+           height="63.847641"
+           x="135.67262"
+           y="500.59738"
+           ry="13.858453"
+           rx="6.3012605" />
+      </g>
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:19.00921631px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         x="137.28098"
+         y="600.97424"
+         id="text4164"
+         sodipodi:linespacing="125%"
+         transform="scale(0.94346733,1.0599201)"><tspan
+           sodipodi:role="line"
+           id="tspan4166"
+           x="137.28098"
+           y="600.97424">RALLY</tspan></text>
+    </g>
+  </g>
+</svg>

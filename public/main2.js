@@ -1,26 +1,4 @@
-
 import {Client} from './client.js'
-//import {Counter} from './counters.js'
-
-var Main = {};
-
-//var socket = io();
-Main.client = new Client()
-
-document.getElementById('canvasContainer').addEventListener('contextmenu', function(e) {
-    e.preventDefault();
-
-}, false);
-
-Main.client.drawBackground('assets/bdp.gif');
-
-Main.client.username = getCookie("userName");
-
-for (var i in Main.client.setOfOptionsforCounters) {
-    Main.client.createCounter(Main.client.setOfOptionsforCounters[i])
-}
-
-Main.client.drawAll();
 
 function getCookie(name) {
     var matches = document.cookie.match(new RegExp(
@@ -29,34 +7,66 @@ function getCookie(name) {
     return matches ? decodeURIComponent(matches[1]) : undefined;
 };
 
-console.log("...");
-console.log("we emit loginMePlease message ");
-socket.emit("loginMePlease", Main.client.username);
-
-socket.on("message", function (players) {
-    console.log("You got Game with :")
-    console.log(players)                            // now we got {guest,host players} let, set owners of Panzer counters
-    console.log(Main.client.allCounters)  
-    Main.client.allCounters['1'].setOwner(players.guest)
-    Main.client.allCounters['2'].setOwner(players.host)
-});
-socket.on("gotDataToDraw", function (data) {       // data here shoul b e only starting point . drawAl Invokes once it really draws All 
-    Main.client.drawAll(data)
-});
-
-socket.on("clickToMove",function(data){		//[this.selectedCounter.ID,this.hexClicked]
-    Main.client.processEnteringClicks(data);
-});
-
-socket.on("turnTo",function(data){			//[this.selectedCounter.ID, [this.mySel.parentCounterObj.ID,'-=60',newSector]]
-    Main.client.processEnteringTurns(data);
-});
-
-canvas.on({
-    'mouse:down': function (options) {
-        Main.client.processClicks(options);
-    },
-    'mouse:move': function (options) {
-        Main.client.processMouseMove(options);           // No ! client shold not process it cause server doesn't need to know where a player moved his mouse
+function findingOppsName (name,players) {
+    for (let i in Object.keys(players)) {
+        if (players[Object.keys(players)[i]] != name) {
+            return players[Object.keys(players)[i]]
+        }
     }
+};
+
+var canvas = document.getElementById('canvas')
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let Main = {};
+
+//Main.socket = io();
+
+Main.username = getCookie('userName');
+Main.client = new Client();
+Main.client.socket = io();
+
+Main.client.socket.emit("loginMePlease",Main.username);
+
+Main.client.socket.on("startGame", function (gamestate) {
+
+    let players = gamestate.players;
+    let mySide = gamestate.sides[Main.username];
+    let scenario = gamestate.scenario ;
+    let setOfOptionsforCounters = gamestate.setOfOptionsforCounters;
+    
+    Main.opponentname = findingOppsName(Main.username,players);
+
+    Main.client.init(scenario,mySide,setOfOptionsforCounters,)
+
+
+});
+
+window.addEventListener('keydown', function(e) {
+    if( e.keyCode == 87 || e.keyCode == 65 || e.keyCode == 68 || e.keyCode == 83) {
+    e.preventDefault()};
+});
+
+document.getElementById('canvasContainer').tabIndex = 1000;
+document.getElementById('canvasContainer').addEventListener("keydown", function(options) {        // we'll also need for blur event to come back focus on canv
+    Main.client.processKeyDown(options);
+});
+document.getElementById('canvasContainer').addEventListener("keyup", function(options) {        // we'll also need for blur event to come back focus on canv
+    Main.client.processKeyUp(options);
+});
+
+
+Main.client.socket.on('endRally',function(){
+    if (Main.client.game.rallyPhaseStatus === 'ended') {
+        Main.client.endPhase();
+        Main.client.game.rallyPhaseStatus = undefined ;
+    } else {
+        Main.client.game.rallyPhaseStatus = 'ended'
+    }
+});
+
+Main.client.socket.on('endPhase',function(){
+
+    Main.client.endPhase()
 });
